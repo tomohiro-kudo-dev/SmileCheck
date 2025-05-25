@@ -1,6 +1,6 @@
-# 😊 smilecheck｜笑顔チェックツール
+# 😊 smile check｜笑顔チェックツール
 
-**smilecheck** は、美容部員や接客業の方向けに開発された笑顔チェックWebツールです。  
+**smile check** は、美容部員や接客業の方向けに開発された笑顔チェックWebツールです。  
 カメラで撮影した表情から口角の動きや唇の開き具合を検出し、スコア化してリアルタイムで表示します。
 
 「出勤前30秒、あなたの笑顔を整える。」そんな日々のルーティンに。
@@ -9,7 +9,7 @@
 
 ## 🌟 デモページ
 
-👉 [smilecheck を使ってみる](https://tomohiro-kudo-dev.github.io/smilecheck/)
+👉 [smile check を使ってみる](https://tomohiro-kudo-dev.github.io/smilecheck/)
 
 ---
 
