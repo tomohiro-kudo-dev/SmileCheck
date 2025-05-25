@@ -9,7 +9,7 @@
 
 ## 🌟 デモページ
 
-👉 [SmileCheck を使ってみる](https://あなたのGitHubユーザー名.github.io/smilecheck/)
+👉 [SmileCheck を使ってみる](https://tomohiro-kudo-dev.github.io/smilecheck/)
 
 ---
 
