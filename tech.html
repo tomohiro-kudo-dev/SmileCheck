@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>SmileCheck 技術解説</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #fefefe; line-height: 1.6; color: #333; }
+    h1, h2 { color: #cc3366; }
+    code { background: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+    a { color: #0066cc; }
+  </style>
+</head>
+<body>
+  <h1>SmileCheck 技術解説</h1>
+  <p><strong>SmileCheck</strong> は、表情スコアを計測するシンプルなWebアプリです。主に美容部員や接客業の方の「笑顔の整え直し」をサポートする目的で設計されました。</p>
+
+  <h2>🛠 使用技術</h2>
+  <ul>
+    <li><strong>HTML / CSS / JavaScript</strong>：フロントエンド構成</li>
+    <li><strong>MediaPipe FaceMesh</strong>：顔のランドマーク検出</li>
+    <li><strong>localStorage</strong>：履歴保存</li>
+    <li><strong>GitHub Pages</strong>：ホスティング</li>
+  </ul>
+
+  <h2>📐 判定ロジック</h2>
+  <p>
+    MediaPipeから得た顔のランドマークをもとに、以下の要素をスコア化します：
+  </p>
+  <ul>
+    <li>口角の左右の距離（横幅）</li>
+    <li>唇の上下の開き具合</li>
+  </ul>
+  <p>これらをしきい値としてスコア（60〜90点）をつけ、リアルタイムに更新。90点以上では「😊 Good Smile!」アニメーションが表示されます。</p>
+
+  <h2>📊 履歴管理</h2>
+  <p>ブラウザの <code>localStorage</code> に履歴を保存し、過去5件まで表示します（ユーザーごと・ブラウザごとに保存）。</p>
+
+  <h2>📦 公開URL</h2>
+  <p><a href="https://あなたのユーザー名.github.io/smilecheck/" target="_blank">https://あなたのユーザー名.github.io/smilecheck/</a></p>
+
+  <h2>👤 制作</h2>
+  <p>工藤 智弘（くどう ともひろ）｜経理とプログラミングを融合し、仕組みづくりで人生の時間を取り戻す活動をしています。</p>
+</body>
+</html>
