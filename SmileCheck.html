@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>笑顔チェック</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; margin: 0; background: #fff0f5; color: #333; }
+    header { background: #ffb6c1; padding: 1rem; text-align: center; font-size: 1.3rem; font-weight: bold; color: white; }
+    main { padding: 1rem; text-align: center; }
+    video { width: 100%; max-width: 640px; margin-top: 1rem; border-radius: 10px; }
+    canvas { display: none; }
+    #result { margin-top: 1.5rem; font-size: 1rem; }
+    #score { font-size: 1.5rem; font-weight: bold; color: #cc3366; }
+    #comment { margin-top: 0.5rem; font-style: italic; }
+    .btn { margin-top: 1.5rem; padding: 1rem 2rem; font-size: 1.2rem; background: #ffccd5; border: none; border-radius: 10px; cursor: pointer; width: 90%; max-width: 320px; }
+    .btn:hover { background: #ffb3c6; }
+    .btn-secondary { background: #e0e0e0; color: #333; margin-top: 1rem; }
+    .ad { margin-top: 2rem; font-size: 0.9rem; color: #666; text-align: center; }
+    #loading, #error, #cameraNotice, #note { margin-top: 1rem; font-size: 0.9rem; color: #cc3366; }
+    #history ul { list-style: none; padding: 0; }
+    #history li { margin: 0.2rem 0; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translate(-50%, 30px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>笑顔チェック</header>
+  <main>
+    <div id="cameraNotice">
+      このアプリは笑顔チェックのためにカメラを使用します。<br>
+      撮影画像は保存されませんのでご安心ください。<br>
+      <button onclick="dismissNotice()">OK</button>
+    </div>
+    <p>出勤前30秒、あなたの笑顔を整える。</p>
+    <video id="input_video" playsinline autoplay muted></video>
+    <button class="btn" onclick="startCheck()">笑顔をチェックする</button>
+    <button class="btn btn-secondary" onclick="resetResult()">リセット</button>
+    <canvas id="output_canvas"></canvas>
+    <div id="loading">カメラを読み込み中です...</div>
+    <div id="error"></div>
+    <div id="note">スコアが表示されない場合は、再度、ボタン「笑顔をチェック」を押してください。</div>
+    <div id="result">
+      <div id="score"></div>
+      <div id="comment"></div>
+      <div id="history"></div>
+    </div>
+    <div>
+      <h4>お手本スマイル</h4>
+      <img src="sample-smile.jpg" alt="サンプル笑顔" style="width: 100%; max-width: 300px; border-radius: 10px;">
+    </div>
+    <div class="ad">
+      <!--※ここに広告が表示されます※-->
+    </div>
+  </main>
+  <script>
+    let faceMesh, camera;
+    let maxScore = 0;
+    let count = 0;
+    const duration = 90;
+
+    function dismissNotice() {
+      document.getElementById("cameraNotice").style.display = "none";
+    }
+
+    function startCheck() {
+      document.getElementById("score").innerText = "チェック中...";
+      document.getElementById("comment").innerText = "3秒間、笑顔をキープしてください。";
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("error").innerText = "";
+
+      maxScore = 0;
+      count = 0;
+
+      const videoElement = document.getElementById('input_video');
+      faceMesh = new FaceMesh({locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+      faceMesh.setOptions({maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5});
+
+      faceMesh.onResults(results => {
+        if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
+        const landmarks = results.multiFaceLandmarks[0];
+        const leftMouth = landmarks[61];
+        const rightMouth = landmarks[291];
+        const topLip = landmarks[13];
+        const bottomLip = landmarks[14];
+
+        const mouthWidth = Math.abs(rightMouth.x - leftMouth.x);
+        const mouthOpen = Math.abs(bottomLip.y - topLip.y);
+
+        let score = 0;
+        if (mouthWidth > 0.05 && mouthOpen > 0.02) score = 90;
+        else if (mouthWidth > 0.04) score = 75;
+        else score = 60;
+
+        if (score >= 85 && !document.getElementById("smileAnimation")) {
+          const emoji = document.createElement("div");
+          emoji.id = "smileAnimation";
+          emoji.innerText = "😊 Good Smile!";
+          emoji.style.position = "absolute";
+          emoji.style.top = "20%";
+          emoji.style.left = "50%";
+          emoji.style.transform = "translateX(-50%)";
+          emoji.style.fontSize = "2rem";
+          emoji.style.animation = "fadeUp 1s ease-out";
+          document.body.appendChild(emoji);
+          setTimeout(() => emoji.remove(), 1000);
+        }
+
+        maxScore = Math.max(maxScore, score);
+        count++;
+
+        if (count >= duration) {
+          document.getElementById("score").innerText = `笑顔スコア：${maxScore}点`;
+          let comment = "";
+          if (maxScore > 85) comment = "とても自然で素敵な笑顔です◎";
+          else if (maxScore > 70) comment = "口角をもう少し上げてみましょう。";
+          else comment = "少し緊張気味かも？リラックスして笑顔を意識してみて。";
+          document.getElementById("comment").innerText = comment;
+
+          const now = new Date();
+          const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+          let scores = JSON.parse(localStorage.getItem("smileScores") || "[]");
+          scores.push({ date: timestamp, score: maxScore });
+          localStorage.setItem("smileScores", JSON.stringify(scores));
+
+          showHistory();
+          camera.stop();
+        }
+      });
+
+      camera = new Camera(videoElement, {
+        onFrame: async () => { await faceMesh.send({image: videoElement}); },
+        width: 640,
+        height: 480
+      });
+
+      camera.start().then(() => {
+        document.getElementById("loading").style.display = "none";
+      }).catch(err => {
+        document.getElementById("error").innerText = "カメラが利用できません。設定をご確認ください。";
+      });
+    }
+
+    function resetResult() {
+      document.getElementById("score").innerText = "";
+      document.getElementById("comment").innerText = "";
+      document.getElementById("history").innerHTML = "";
+    }
+
+    function showHistory() {
+      const scores = JSON.parse(localStorage.getItem("smileScores") || "[]");
+      if (scores.length > 0) {
+        let html = "<h4>過去のスコア履歴</h4><ul>";
+        scores.slice(-5).reverse().forEach(entry => {
+          html += `<li>${entry.date}: ${entry.score}点</li>`;
+        });
+        html += "</ul>";
+        document.getElementById("history").innerHTML = html;
+      }
+    }
+  </script>
+</body>
+</html>
